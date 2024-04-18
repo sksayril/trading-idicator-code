@@ -1,0 +1,39 @@
+//@version=5
+indicator("Previous Candle High Marker with Buy/Sell Signals + Pyramid", overlay=true)
+
+// Define input parameters
+length = input.int(21, "SMA Length")
+
+// Calculate SMA
+sma = ta.sma(close, length)
+
+var line highLine = na  // Initialize a variable to store the line object
+
+if (na(highLine))
+    highLine := line.new(bar_index[1], high[1], bar_index, high[1], width=2, color=color.blue, extend=extend.right)
+else
+    line.set_xy1(highLine, bar_index[1], high[1])
+    line.set_xy2(highLine, bar_index, high[1])
+    line.set_extend(highLine, extend.right)
+
+// Track the last buy price
+varip float lastBuyPrice = na
+
+// Buy and sell conditions
+buy_condition = close < sma and close[1] >= sma[1]
+sell_condition = close > sma and close[1] <= sma[1] and not na(lastBuyPrice) and close > lastBuyPrice
+
+// Update last buy price on buy signal
+if (buy_condition)
+    lastBuyPrice := close
+
+// Plot buy and sell signals
+plotshape(buy_condition, style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(series=sell_condition, style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+
+// Enhanced functionality: Display Pyramid with Buy/Sell Amount
+if (buy_condition)
+    label.new(x=bar_index, y=low, text="Buy: " + str.tostring(close), style=label.style_label_lower_left, color=color.new(color.green, 0), textcolor=color.white, size=size.normal)
+if (sell_condition)
+    label.new(x=bar_index, y=high, text="Sell: " + str.tostring(close), style=label.style_label_upper_left, color=color.new(color.red, 0), textcolor=color.white, size=size.normal)
+//  add one fetures to this code when have previous have buy idicator but this cannot have sell indicator cannot need to next buy idicator
